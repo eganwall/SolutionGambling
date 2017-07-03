@@ -1,3 +1,3 @@
 # SolutionGambling
 
-Readme.md
+## http://reddit.com/r/SolutionGambling to see it in action!
