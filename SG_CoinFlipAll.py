@@ -4,29 +4,22 @@ import SG_Messages
 import pprint
 import time
 import ConfigParser
-from random import randint
+import random
 
 config = ConfigParser.ConfigParser()
 config.read("settings.config")
-config_header = "DiceRoll"
 
 username = config.get("General", "username")
 version = config.get("General", "version")
 starting_balance = int(config.get("General", "starting_balance"))
-max_bet = int(config.get(config_header, "bet_limit"))
-payout_factor = int(config.get(config_header, "payout_factor"))
-game_type = '6-9 Dice'
+game_type = 'AoN Flip'
 
-def format_wager_reply(username, wager_amount, roll_1, roll_2, total, outcome,
+def format_wager_reply(username, wager_amount, flip_result, outcome,
                        winnings, new_balance):
-    return reply_messages.DICE_ROLL_SUCCESS_MSG.format(username,
-                                                       wager_amount,
-                                                       roll_1,
-                                                       roll_2,
-                                                       total,
-                                                       outcome,
-                                                       winnings,
-                                                       new_balance)
+    if outcome == SG_Repository.WagerOutcome.WIN:
+        return reply_messages.COIN_FLIP_WIN_MSG.format(username, wager_amount, flip_result, new_balance)
+    else:
+        return reply_messages.COIN_FLIP_LOSE_MSG.format(username, wager_amount, flip_result)
 
 def update_player_after_wager(username, new_balance, flair_class):
     sg_repo.UPDATE_PLAYER_BALANCE_BY_USERNAME(username, new_balance)
@@ -40,37 +33,33 @@ def update_player_flair(player, flair, flair_class):
     else:
         subreddit.flair.set(player, "{}{:,}".format(constants.FLAIR_TIER_TITLES[flair_class], flair), flair_class)
 
-def roll_die():
-    roll = randint(1, 6)
-    print("Die roll result: {}".format(roll))
-    return roll
+def flip_coin():
+    coin_toss = random.choice(["HEADS", "TAILS"])
+    print("Coin flip result: {}".format(coin_toss))
+    return coin_toss
 
 def parse_post_for_wager(post_body, player_balance):
     body_tokens = post_body.strip().split(' ')
 
-    if str(body_tokens[0]) == 'wager' and (body_tokens[1].isnumeric() or body_tokens[1] == 'max'):
-        if(body_tokens[1] == 'max'):
-            return min(player_balance, max_bet)
-        else:
-            return int(body_tokens[1])
+    if str(body_tokens[0]) == 'wager':
+        return player_balance
 
-    return 0
+    return -1
 
-def play_6_9(wager_amount):
-    roll_1 = roll_die()
-    roll_2 = roll_die()
+def play_coin_toss(wager_amount):
+    coin_result = flip_coin()
 
-    if (roll_1 + roll_2 == 6) or (roll_1 + roll_2 == 9) or (roll_1 + roll_2 == 3):
+    if (coin_result == "HEADS"):
         outcome = SG_Repository.WagerOutcome.WIN
-        winnings = wager_amount * payout_factor
+        winnings = wager_amount * 2
     else:
         outcome = SG_Repository.WagerOutcome.LOSE
         winnings = 0
 
-    wager_result = {'roll_1' : roll_1, 'roll_2' : roll_2, 'outcome' : outcome,
-                    'winnings' : winnings, 'roll_total' : (roll_1 + roll_2)}
+    wager_result = {'toss_result' : coin_result, 'outcome' : outcome,
+                    'winnings' : winnings}
 
-    print("6-9 wager result:")
+    print("Coin toss wager result:")
     pprint.pprint(wager_result)
 
     return wager_result
@@ -100,12 +89,12 @@ constants = SG_Messages.MiscConstants
 # set our subreddit so that we can do mod stuff like edit flairs
 subreddit = reddit.subreddit('solutiongambling')
 
-while True:
+def bot_loop():
     # get the Submission object for our dice roll thread
-    submission = reddit.submission(id='6kiwhu')
+    submission = reddit.submission(id='6lppms')
 
     submission.comment_sort = 'new'
-    submission.comments.replace_more(limit = 0)
+    submission.comments.replace_more(limit=0)
     for comment in list(submission.comments):
         # if we haven't processed this comment yet, make a new record for it and
         # process it
@@ -119,7 +108,8 @@ while True:
                 sg_repo.INSERT_PLAYER(comment.author.name, starting_balance)
                 update_player_flair(comment.author.name, starting_balance, '')
                 reddit.redditor(comment.author.name).message('Welcome!',
-                                                             reply_messages.NEW_PLAYER_WELCOME_MESSAGE.format(comment.author.name),
+                                                             reply_messages.NEW_PLAYER_WELCOME_MESSAGE.format(
+                                                                 comment.author.name),
                                                              from_subreddit='/r/SolutionGambling')
 
             # get the player from the DB so we can validate their wager
@@ -133,35 +123,33 @@ while True:
             wager_amount = parse_post_for_wager(post_body_lower, player['balance'])
             print("Wager amount from post: {}".format(wager_amount))
 
-            if wager_amount <= 0:
-                print("Wager amount not valid")
-                comment.reply(error_messages.DICE_ROLL_ERROR_MSG)
+            if wager_amount == 0:
+                print("Player has no balance")
+                comment.reply(error_messages.COIN_FLIP_NO_BALANCE_ERROR_MSG.format(player['username']))
                 continue
 
-            if wager_amount > player['balance']:
-                print("Player wagered more than their balance")
-                comment.reply(error_messages.INSUFFICIENT_BALANCE_ERROR_MSG)
+            if wager_amount == -1:
+                print("Player triggered bot incorrectly")
+                comment.reply(error_messages.COIN_FLIP_ERROR_MSG.format(player['username']))
                 continue
 
-            if wager_amount > max_bet:
-                print("Player wagered more than this game's max bet")
-                comment.reply(error_messages.OVER_MAX_BET_ERROR_MSG.format(max_bet))
-                continue
-
-            wager_result = play_6_9(wager_amount)
+            wager_result = play_coin_toss(wager_amount)
             new_player_balance = player['balance'] - wager_amount + wager_result['winnings']
 
             sg_repo.INSERT_WAGER(player['username'], wager_result['outcome'],
                                  wager_amount, wager_result['winnings'], new_player_balance, game_type)
             update_player_after_wager(player['username'], new_player_balance, player['flair_css_class'])
 
-            reply = format_wager_reply(player['username'], wager_amount, wager_result['roll_1'],
-                                       wager_result['roll_2'], wager_result['roll_total'],
-                                       wager_result['outcome'], wager_result['winnings'],
-                                       new_player_balance)
+            reply = format_wager_reply(player['username'], wager_amount, wager_result['toss_result'], wager_result['outcome'],
+                                       wager_result['winnings'], new_player_balance)
 
             print("Reply formatted:\n{}".format(reply))
             comment.reply(reply)
+        else:
+            break
+
+while True:
+    bot_loop()
 
     print("---------------------- Processing finished - sleeping for 10 seconds...")
     time.sleep(10)

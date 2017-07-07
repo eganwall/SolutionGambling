@@ -19,8 +19,8 @@ max_bet = int(config.get(config_header, "bet_limit"))
 payout_table = {
     'parity' : 2,
     'color' : 2,
-    'number' : 40,
-    'dozen' : 4
+    'number' : 37,
+    'dozen' : 3
 }
 
 roulette_list = [
@@ -74,17 +74,17 @@ def format_wager_reply(username, wager_amount, hand_string, hand_type, outcome,
                                                    winnings,
                                                    new_balance)
 
-def update_player_after_wager(username, new_balance):
+def update_player_after_wager(username, new_balance, flair_class):
     sg_repo.UPDATE_PLAYER_BALANCE_BY_USERNAME(username, new_balance)
-    update_player_flair(username, new_balance)
+    update_player_flair(username, new_balance, flair_class)
 
-def update_player_flair(player, flair):
-    print('Updating flair : [player = {}], [flair = {}]'.format(player, flair))
+def update_player_flair(player, flair, flair_class):
+    print('Updating flair : [player = {}], [flair = {}], [class = {}]'.format(player, flair, flair_class))
 
     if(player == 'eganwall'):
-        subreddit.flair.set(player, "Pit Boss : {:,}".format(flair))
+        subreddit.flair.set(player, "Pit Boss : {:,}".format(flair), flair_class)
     else:
-        subreddit.flair.set(player, "{:,}".format(flair))
+        subreddit.flair.set(player, "{}{:,}".format(constants.FLAIR_TIER_TITLES[flair_class], flair), flair_class)
 
 def spin_roulette():
     print("Spinning roulette wheel...")
@@ -167,36 +167,12 @@ def determine_outcome(wager, roulette_result):
         else:
             return SG_Repository.WagerOutcome.LOSE
 
-# create our Reddit instance
-c_id = config.get("General", "client_id")
-c_secret = config.get("General", "client_secret")
-user = config.get("General", "plain_username")
-pw = config.get("General", "password")
-
-reddit = praw.Reddit(
-    client_id = c_id,
-    client_secret = c_secret,
-    username = user,
-    password = pw,
-    user_agent = 'Dealer bot v{} by /u/eganwall'.format(version)
-)
-
-# initialize our repository
-sg_repo = SG_Repository.Repository()
-
-# get our messaging classes
-error_messages = SG_Messages.ErrorMessages
-reply_messages = SG_Messages.ReplyMessages
-
-# set our subreddit so that we can do mod stuff like edit flairs
-subreddit = reddit.subreddit('solutiongambling')
-
-while True:
+def bot_loop():
     # get the Submission object for our poker thread
     submission = reddit.submission(id='6k6vbj')
 
     submission.comment_sort = 'new'
-    submission.comments.replace_more(limit = 0)
+    submission.comments.replace_more(limit=0)
     for comment in list(submission.comments):
         # if we haven't processed this comment yet, make a new record for it and
         # process it
@@ -208,9 +184,10 @@ while True:
             # welcome PM
             if sg_repo.GET_PLAYER_BY_USERNAME(comment.author.name) is None:
                 sg_repo.INSERT_PLAYER(comment.author.name, starting_balance)
-                update_player_flair(comment.author.name, starting_balance)
+                update_player_flair(comment.author.name, starting_balance, '')
                 reddit.redditor(comment.author.name).message('Welcome!',
-                                                             reply_messages.NEW_PLAYER_WELCOME_MESSAGE.format(comment.author.name),
+                                                             reply_messages.NEW_PLAYER_WELCOME_MESSAGE.format(
+                                                                 comment.author.name),
                                                              from_subreddit='/r/SolutionGambling')
 
             # get the player from the DB so we can validate their wager
@@ -280,17 +257,49 @@ while True:
             new_player_balance = player['balance'] - total_wagered + total_winnings
 
             # update the player's balance
-            update_player_after_wager(player['username'], new_player_balance)
+            update_player_after_wager(player['username'], new_player_balance, player['flair_css_class'])
             updated_player = sg_repo.GET_PLAYER_BY_USERNAME(player['username'])
 
             # format and send the reply
             reply = SG_Messages.ReplyMessages.ROULETTE_REPLY_WRAPPER_TEMPLATE_MSG.format(
                 updated_player['username'], roulette_result['value'], roulette_result['color'].upper(),
-                wager_results_string, total_wagered, total_winnings, (total_winnings - total_wagered), updated_player['balance']
+                wager_results_string, total_wagered, total_winnings, (total_winnings - total_wagered),
+                updated_player['balance']
             )
 
             print("Reply formatted:\n{}".format(reply))
             comment.reply(reply)
+
+        else:
+            break
+
+# create our Reddit instance
+c_id = config.get("General", "client_id")
+c_secret = config.get("General", "client_secret")
+user = config.get("General", "plain_username")
+pw = config.get("General", "password")
+
+reddit = praw.Reddit(
+    client_id = c_id,
+    client_secret = c_secret,
+    username = user,
+    password = pw,
+    user_agent = 'Dealer bot v{} by /u/eganwall'.format(version)
+)
+
+# initialize our repository
+sg_repo = SG_Repository.Repository()
+
+# get our messaging classes
+error_messages = SG_Messages.ErrorMessages
+reply_messages = SG_Messages.ReplyMessages
+constants = SG_Messages.MiscConstants
+
+# set our subreddit so that we can do mod stuff like edit flairs
+subreddit = reddit.subreddit('solutiongambling')
+
+while True:
+    bot_loop()
 
     print("---------------------- Processing finished - sleeping for 10 seconds...")
     time.sleep(10)

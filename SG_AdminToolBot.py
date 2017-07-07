@@ -1,5 +1,7 @@
 import ConfigParser
 import praw
+
+import SG_Messages
 import SG_Repository
 
 config = ConfigParser.ConfigParser()
@@ -24,16 +26,18 @@ reddit = praw.Reddit(
 
 admin_usernames = ['eganwall']
 
-def update_player_flair(player, flair):
-    print('Updating flair : [player = {}], [flair = {}]'.format(player, flair))
+def update_player_flair(player, flair, flair_class):
+    print('Updating flair : [player = {}], [flair = {}], [class = {}]'.format(player, flair, flair_class))
 
     if(player == 'eganwall'):
-        subreddit.flair.set(player, "Pit Boss : {:,}".format(flair))
+        subreddit.flair.set(player, "Pit Boss : {:,}".format(flair), flair_class)
     else:
-        subreddit.flair.set(player, "{:,}".format(flair))
+        subreddit.flair.set(player, "{}{:,}".format(constants.FLAIR_TIER_TITLES[flair_class], flair), flair_class)
 
 # initialize our repository
 sg_repo = SG_Repository.Repository()
+
+constants = SG_Messages.MiscConstants
 
 # get our subreddit
 subreddit = reddit.subreddit('solutiongambling')
@@ -55,6 +59,6 @@ for comment in subreddit.stream.comments():
             print('/u/{}\'s new balance is {}\n\n'.format(player_username, new_balance))
             sg_repo.UPDATE_PLAYER_BALANCE_BY_USERNAME(player_username, new_balance)
 
-            update_player_flair(player_username, new_balance)
+            update_player_flair(player_username, new_balance, player_dto['flair_css_class'])
 
             reddit.redditor('eganwall').message('Deposit successful', 'Successfully deposited {} for /u/{}'.format(add_amount, player_username))

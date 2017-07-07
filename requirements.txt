@@ -1,0 +1,14 @@
+appdirs==1.4.2
+args==0.1.0
+clint==0.5.1
+deuces==0.2
+ipaddress==1.0.18
+packaging==16.8
+praw==4.4.0
+prawcore==0.8.0
+pymongo==3.4.0
+pyparsing==2.1.10
+redis==2.10.5
+requests==2.13.0
+six==1.10.0
+update-checker==0.16

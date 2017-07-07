@@ -44,6 +44,9 @@ class Repository:
     def UPDATE_PLAYER_BALANCE_BY_USERNAME(self, username, new_balance):
         return self.playerdb.update_one({'username': username}, {'$set': {'balance': new_balance}})
 
+    def UPDATE_PLAYER_FLAIR_BY_USERNAME(self, username, new_level, new_class):
+        return self.playerdb.update_one({'username': username}, {'$set': {'flair_level': new_level, 'flair_css_class' : new_class}})
+
     def UPDATE_PLAYER_BALANCE_BY_ID(self, id, new_balance):
         return self.playerdb.update_one({'_id': id}, {'$set': {'balance': new_balance}})
 
@@ -59,7 +62,8 @@ class Repository:
 
     def INSERT_PLAYER(self, username, balance):
         print("INSERT_PLAYER : [username = {}], [balance = {}]".format(username, balance))
-        newplayer_id = self.playerdb.insert_one({'username': username, 'balance': balance}).inserted_id
+        newplayer_id = self.playerdb.insert_one({'username': username, 'balance': balance,
+                                                 'flair_css_class' : '', 'flair_level' : 0}).inserted_id
         print("INSERT_PLAYER returned : [ID = {}]".format(str(newplayer_id)))
         return newplayer_id
 

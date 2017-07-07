@@ -41,6 +41,32 @@ Please adjust your wager amount!
 
 ^^If ^^you ^^have ^^any ^^issues, ^^please ^^PM ^^/u/eganwall ^^or ^^post ^^on ^^this ^^sub!*"""
 
+    FLAIR_SHOP_INSUFFICIENT_BALANCE_ERROR_MSG = """/u/{},
+
+It appears that you are attempting to purchase a __Level {}__ flair, which costs {:,}.
+
+Your current balance is {:,}, which is insufficient for this purchase. Please try again when you have the points!"""
+
+    FLAIR_SHOP_ALREADY_MAX_LEVEL = """/u/{},
+
+It appears you are already at the highest flair level! Congratulations!"""
+
+    COIN_FLIP_NO_BALANCE_ERROR_MSG = """/u/{},
+
+It appears that you have no points with which to wager! Please message the moderators
+and they will deposit the starting amount into your bankroll so you can get back on 
+your feet.
+
+Thanks, and good luck!"""
+
+    COIN_FLIP_ERROR_MSG = """/u/{},
+
+Please place your bet by posting a comment like this: 
+
+    wager
+
+Thanks, and good luck!"""
+
 class ReplyMessages:
     NEW_PLAYER_WELCOME_MESSAGE = """Hello, /u/{}! Welcome to /r/SolutionGambling -
 where you can build a meaningless fortune of imaginary points one wager at a time!
@@ -180,9 +206,46 @@ Your __overall profit__ is {:,}, and your __new balance__ is {:,}.
 
 Thanks for your wager - good luck!"""
 
+    FLAIR_SHOP_SUCCESS_MSG = """/u/{},
+
+Your purchase of __Level {}__ flair for {:,} was successful! 
+
+Your new balance is __{:,}__.
+
+Enjoy!"""
+
+    COIN_FLIP_WIN_MSG = """/u/{},
+
+You've risked your whole balance ({:,}) on this coin flip, and the result is...
+
+#__{}__!
+
+Congratulations! Your new balance is {:,}. Good luck!"""
+
+    COIN_FLIP_LOSE_MSG = """/u/{},
+
+You've risked your whole balance ({:,}) on this coin flip, and the result is...
+
+#__{}__!
+
+Unfortunately, you've lost. You'll have some points deposited by /u/eganwall whenever he
+reads this. Thanks for playing, and better luck next time!"""
+
 class MiscMessages:
     SUBSCRIBER_ANNOUNCEMENT_MSG_TEMPLATE = """Hello, /u/{}!
 
 {}
 
 Thanks for reading and playing - good luck!"""
+
+class MiscConstants:
+    FLAIR_TIER_TITLES = {
+        "" : "",
+        "lvl1" : "Novice: ",
+        "lvl2" : "Social Gambler: ",
+        "lvl3" : "Addict: ",
+        "lvl4" : "Grinder: ",
+        "lvl5" : "Professional: ",
+        "lvl6" : "High Roller: ",
+        "lvl7" : "Whale: ",
+    }

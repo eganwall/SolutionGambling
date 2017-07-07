@@ -33,17 +33,33 @@ sg_repo = SG_Repository.Repository()
 message_template = SG_Messages.MiscMessages.SUBSCRIBER_ANNOUNCEMENT_MSG_TEMPLATE
 
 # here's the subject and body of the message we want to send to the subs
-message_subject = "Updates: Reset Coming!"
-message_body = """Last night, I reset everyone's balances and cleaned up some of the games in the sub (I'm sure most of you noticed). However, it still seems that progression is less about any sort of luck and more of a function of betting volume and frequency (looking at you /u/vnoice!), which isn't particularly in line with my vision. Like I said in earlier posts, this sub shouldn't necessarily operate like a casino - I want players to win in the long run. It's just... maybe not quite so easily. Playing poker at the moment is basically printing money, and after a few big payouts you can start betting huge amounts with pretty much 0 risk of ruin. 
+message_subject = "Updates: Small Flair Changes and New High-Stakes Game!"
+message_body = """Today I finished a couple of smaller things I had in the works: flair 
+titles and a new, all-or-nothing game!
 
-Currently when playing poker, you have roughly a 17% chance to lose (no pair), ~43% chance to get your bet back (pair), and about a 40% chance to **at least** double your money. I think that this is, combined with the fact that there is no maximum bet, is pretty unhealthy and makes the game less meaningful. It's not really gambling if there's no chance of losing, is it? And if poker is basically free money, what reason is there to play any of the other games? As we can see, there is none. 
+&nbsp;
 
-That being said, here are the steps I'm going to take in order to make this a little more stimulating:
+If you go to the flair shop, you'll notice that each level/color of flair now has a title.
+I added this because I was looking at the sub on my mobile Reddit app, and noticed that 
+since CSS doesn't show up, nobody could see the flair colors! The titles add a little bit more
+flavor, as well as allowing mobile users to see their flairs (and the flairs of others).
 
-* Further adjust the payout scale in poker. After the changes, a hand must be **at least 2 pair** in order to qualify as a win. This makes poker more of a gamble, as wins will be less frequent, but it will still pay out better than pretty much any other game
-* Institute a maximum bet. Just like casinos have at their tables, this sub will have a **maximum bet** of something along the lines of 100K (this may vary across the game type). This will eliminate some of the experience issues with having to type in huge numbers, and will help make progression less snowbally and a bit more realistic. If player balances eventually get high enough that this is a fairly insignificant max bet, I'll open up some high-limit threads. After these changes, though, it should take a lot longer to get to the point where we have balances in the billions and trillions
+&nbsp;
 
-Along with these changes will come another reset (sorry to those who have been grinding after this current reset!) but I think it's important that there are fewer safe bets - after all, this is about gambling!"""
+I also noticed that there have been plenty of big hands that have been hit in poker, resulting 
+in some pretty high balances. This is neat, but having a maximum of 50K per poker hand kind of 
+makes it feel insignificant. For a little bit of added flavor, I've implemented a simple coin flip 
+game. What makes it high-stakes, however, is that if you place a wager, it's for your entire bankroll!
+
+I know this may not be appealing to some of you more risk-averse players with big stacks, and that's
+OK - I figured I would get some feedback on this, while also planning to implement some other 
+high-stakes alternatives; for instance, possibly high-limit roulette where you can choose between a small
+bet of 1 million, and a large bet of 10 million. I'm going to be fiddling around with some design issues
+around high stakes games, so stay tuned for more in the future!
+
+&nbsp;
+
+Coming up soon: gifting and more games!"""
 
 # get all of our players
 all_players = sg_repo.GET_ALL_PLAYERS()

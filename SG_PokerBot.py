@@ -38,17 +38,17 @@ def format_wager_reply(username, wager_amount, hand_string, board_string, hand_t
                                                    winnings,
                                                    new_balance)
 
-def update_player_after_wager(username, new_balance):
+def update_player_after_wager(username, new_balance, flair_class):
     sg_repo.UPDATE_PLAYER_BALANCE_BY_USERNAME(username, new_balance)
-    update_player_flair(username, new_balance)
+    update_player_flair(username, new_balance, flair_class)
 
-def update_player_flair(player, flair):
-    print('Updating flair : [player = {}], [flair = {}]'.format(player, flair))
+def update_player_flair(player, flair, flair_class):
+    print('Updating flair : [player = {}], [flair = {}], [class = {}]'.format(player, flair, flair_class))
 
     if(player == 'eganwall'):
-        subreddit.flair.set(player, "Pit Boss : {:,}".format(flair))
+        subreddit.flair.set(player, "Pit Boss : {:,}".format(flair), flair_class)
     else:
-        subreddit.flair.set(player, "{:,}".format(flair))
+        subreddit.flair.set(player, "{}{:,}".format(constants.FLAIR_TIER_TITLES[flair_class], flair), flair_class)
 
 def deal_hand():
     deck = deuces.Deck()
@@ -62,11 +62,14 @@ def deal_hand():
         card.print_pretty_card(current_card)
     return {'board' : board, 'hand' : hand}
 
-def parse_post_for_wager(post_body):
+def parse_post_for_wager(post_body, player_balance):
     body_tokens = post_body.strip().split(' ')
 
-    if str(body_tokens[0]) == 'wager' and body_tokens[1].isnumeric():
-        return int(body_tokens[1])
+    if str(body_tokens[0]) == 'wager' and (body_tokens[1].isnumeric() or body_tokens[1] == 'max'):
+        if(body_tokens[1] == 'max'):
+            return min(player_balance, max_bet)
+        else:
+            return int(body_tokens[1])
 
     return 0
 
@@ -129,6 +132,7 @@ sg_repo = SG_Repository.Repository()
 # get our messaging classes
 error_messages = SG_Messages.ErrorMessages
 reply_messages = SG_Messages.ReplyMessages
+constants = SG_Messages.MiscConstants
 
 # initialize the classes we need to run the poker game
 card = deuces.Card()
@@ -137,12 +141,12 @@ evaluator = deuces.Evaluator()
 # set our subreddit so that we can do mod stuff like edit flairs
 subreddit = reddit.subreddit('solutiongambling')
 
-while True:
+def bot_loop():
     # get the Submission object for our poker thread
     submission = reddit.submission(id='6kcnvc')
 
     submission.comment_sort = 'new'
-    submission.comments.replace_more(limit = 0)
+    # submission.comments.replace_more(limit=0)
     for comment in list(submission.comments):
         # if we haven't processed this comment yet, make a new record for it and
         # process it
@@ -154,9 +158,10 @@ while True:
             # welcome PM
             if sg_repo.GET_PLAYER_BY_USERNAME(comment.author.name) is None:
                 sg_repo.INSERT_PLAYER(comment.author.name, starting_balance)
-                update_player_flair(comment.author.name, starting_balance)
+                update_player_flair(comment.author.name, starting_balance, '')
                 reddit.redditor(comment.author.name).message('Welcome!',
-                                                             reply_messages.NEW_PLAYER_WELCOME_MESSAGE.format(comment.author.name),
+                                                             reply_messages.NEW_PLAYER_WELCOME_MESSAGE.format(
+                                                                 comment.author.name),
                                                              from_subreddit='/r/SolutionGambling')
 
             # get the player from the DB so we can validate their wager
@@ -167,7 +172,7 @@ while True:
             post_body_lower = comment.body.lower()
             print("Processing post body: ".format(post_body_lower))
 
-            wager_amount = parse_post_for_wager(post_body_lower)
+            wager_amount = parse_post_for_wager(post_body_lower, player['balance'])
             print("Wager amount from post: {}".format(wager_amount))
 
             if wager_amount <= 0:
@@ -190,14 +195,20 @@ while True:
 
             sg_repo.INSERT_WAGER(player['username'], wager_result['outcome'],
                                  wager_amount, wager_result['winnings'], new_player_balance, game_type)
-            update_player_after_wager(player['username'], new_player_balance)
+            update_player_after_wager(player['username'], new_player_balance, player['flair_css_class'])
 
-            reply = format_wager_reply(player['username'], wager_amount, wager_result['full_hand_string'], wager_result['full_board_string'],
+            reply = format_wager_reply(player['username'], wager_amount, wager_result['full_hand_string'],
+                                       wager_result['full_board_string'],
                                        wager_result['hand_type'], wager_result['outcome'], wager_result['winnings'],
                                        new_player_balance)
 
-            #print("Reply formatted:\n{}".format(reply))
+            # print("Reply formatted:\n{}".format(reply))
             comment.reply(reply)
+        else:
+            break
+
+while True:
+    bot_loop()
 
     print("---------------------- Processing finished - sleeping for 10 seconds...")
     time.sleep(10)
