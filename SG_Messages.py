@@ -67,6 +67,16 @@ Please place your bet by posting a comment like this:
 
 Thanks, and good luck!"""
 
+    WAR_ERROR_MSG = """/u/{},
+
+Please place your bet by selecting either the 'small' or 'big' bet:
+
+    wager small
+    wager mid
+    wager big
+
+Thanks, and good luck!"""
+
 class ReplyMessages:
     NEW_PLAYER_WELCOME_MESSAGE = """Hello, /u/{}! Welcome to /r/SolutionGambling -
 where you can build a meaningless fortune of imaginary points one wager at a time!
@@ -230,6 +240,35 @@ You've risked your whole balance ({:,}) on this coin flip, and the result is...
 
 Unfortunately, you've lost. You'll have some points deposited by /u/eganwall whenever he
 reads this. Thanks for playing, and better luck next time!"""
+
+    CASINO_WAR_REPLY_WRAPPER_TEMPLATE_MSG = """/u/{},
+
+Thank you for your wager of {:,}! Here are your war results:
+
+&nbsp;
+
+{}
+
+Your outcome is : **{}**
+
+&nbsp;
+
+Your __winnings__ are __{:,}__
+
+Your __profit__ is __{:,}__
+
+Your __new balance__ is ***{:,}***
+
+Thanks for playing, and good luck!
+"""
+
+    CASINO_WAR_BODY_TEMPLATE = """Your card : 
+
+    {}
+
+Dealer's card: 
+
+    {}"""
 
 class MiscMessages:
     SUBSCRIBER_ANNOUNCEMENT_MSG_TEMPLATE = """Hello, /u/{}!
