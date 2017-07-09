@@ -6,6 +6,7 @@ import SG_Messages
 import random
 import time
 import ConfigParser
+import SG_Utils
 
 config = ConfigParser.ConfigParser()
 config.read("settings.config")
@@ -64,27 +65,6 @@ roulette_list = [
 ]
 
 game_type = 'Roulette'
-
-def format_wager_reply(username, wager_amount, hand_string, hand_type, outcome,
-                       winnings, new_balance):
-    return reply_messages.POKER_SUCCESS_MSG.format(username,
-                                                   wager_amount,
-                                                   hand_string,
-                                                   hand_type,
-                                                   winnings,
-                                                   new_balance)
-
-def update_player_after_wager(username, new_balance, flair_class):
-    sg_repo.UPDATE_PLAYER_BALANCE_BY_USERNAME(username, new_balance)
-    update_player_flair(username, new_balance, flair_class)
-
-def update_player_flair(player, flair, flair_class):
-    print('Updating flair : [player = {}], [flair = {}], [class = {}]'.format(player, flair, flair_class))
-
-    if(player == 'eganwall'):
-        subreddit.flair.set(player, "Pit Boss : {:,}".format(flair), flair_class)
-    else:
-        subreddit.flair.set(player, "{}{:,}".format(constants.FLAIR_TIER_TITLES[flair_class], flair), flair_class)
 
 def spin_roulette():
     print("Spinning roulette wheel...")
@@ -184,7 +164,7 @@ def bot_loop():
             # welcome PM
             if sg_repo.GET_PLAYER_BY_USERNAME(comment.author.name) is None:
                 sg_repo.INSERT_PLAYER(comment.author.name, starting_balance)
-                update_player_flair(comment.author.name, starting_balance, '')
+                SG_Utils.update_player_flair(comment.author.name, starting_balance, '')
                 reddit.redditor(comment.author.name).message('Welcome!',
                                                              reply_messages.NEW_PLAYER_WELCOME_MESSAGE.format(
                                                                  comment.author.name),
@@ -257,7 +237,7 @@ def bot_loop():
             new_player_balance = player['balance'] - total_wagered + total_winnings
 
             # update the player's balance
-            update_player_after_wager(player['username'], new_player_balance, player['flair_css_class'])
+            SG_Utils.update_player_after_wager(player['username'], new_player_balance, player['flair_css_class'])
             updated_player = sg_repo.GET_PLAYER_BY_USERNAME(player['username'])
 
             # format and send the reply

@@ -238,8 +238,8 @@ You've risked your whole balance ({:,}) on this coin flip, and the result is...
 
 #__{}__!
 
-Unfortunately, you've lost. You'll have some points deposited by /u/eganwall whenever he
-reads this. Thanks for playing, and better luck next time!"""
+Unfortunately, you've lost your bankroll. You'll have some points automatically deposited in just a minute!
+Thanks for playing, and good luck!"""
 
     CASINO_WAR_REPLY_WRAPPER_TEMPLATE_MSG = """/u/{},
 
@@ -269,6 +269,11 @@ Thanks for playing, and good luck!
 Dealer's card: 
 
     {}"""
+
+    DEPOSIT_AFTER_BANKRUPTCY_MSG = """/u/{},
+
+It looks like you've lost all of your points! Don't worry - we've added some more to 
+your balance. Get back out there and have fun!"""
 
 class MiscMessages:
     SUBSCRIBER_ANNOUNCEMENT_MSG_TEMPLATE = """Hello, /u/{}!

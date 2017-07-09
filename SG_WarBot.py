@@ -6,6 +6,7 @@ import pprint
 import time
 import deuces
 import ConfigParser
+import SG_Utils
 
 config = ConfigParser.ConfigParser()
 config.read("settings.config")
@@ -41,19 +42,6 @@ def format_wager_reply(username, wager_amount, player_card, player_war_card,
         reply_body += war_results
 
     return reply_template.format(username, wager_amount, reply_body, outcome, winnings, winnings - wager_amount, new_balance)
-
-def update_player_after_wager(username, new_balance, flair_class):
-    sg_repo.UPDATE_PLAYER_BALANCE_BY_USERNAME(username, new_balance)
-    update_player_flair(username, new_balance, flair_class)
-
-def update_player_flair(player, flair, flair_class):
-    print('Updating flair : [player = {}], [flair = {}], [class = {}]'.format(player, flair, flair_class))
-
-    if(player == 'eganwall'):
-        subreddit.flair.set(player, "Pit Boss : {:,}".format(flair), flair_class)
-    else:
-        subreddit.flair.set(player, "{}{:,}".format(constants.FLAIR_TIER_TITLES[flair_class], flair), flair_class)
-
 
 def parse_post_for_wager(post_body, player_balance):
     body_tokens = post_body.strip().split(' ')
@@ -184,7 +172,7 @@ def bot_loop():
             # welcome PM
             if sg_repo.GET_PLAYER_BY_USERNAME(comment.author.name) is None:
                 sg_repo.INSERT_PLAYER(comment.author.name, starting_balance)
-                update_player_flair(comment.author.name, starting_balance, '')
+                SG_Utils.update_player_flair(comment.author.name, starting_balance, '')
                 reddit.redditor(comment.author.name).message('Welcome!',
                                                              reply_messages.NEW_PLAYER_WELCOME_MESSAGE.format(
                                                                  comment.author.name),
@@ -216,7 +204,7 @@ def bot_loop():
 
             sg_repo.INSERT_WAGER(player['username'], wager_result['outcome'],
                                  wager_amount, wager_result['winnings'], new_player_balance, game_type)
-            update_player_after_wager(player['username'], new_player_balance, player['flair_css_class'])
+            SG_Utils.update_player_after_wager(player['username'], new_player_balance, player['flair_css_class'])
 
             reply = format_wager_reply(player['username'], wager_amount, wager_result['player_card'],
                                        wager_result['player_war_card'], wager_result['dealer_card'],
