@@ -3,56 +3,24 @@ import SG_Repository
 import SG_Messages
 import pprint
 import time
-import deuces
 import ConfigParser
+import random
 import SG_Utils
 
 config = ConfigParser.ConfigParser()
 config.read("settings.config")
-config_header = "Poker"
+config_header = "Keno"
 
 username = config.get("General", "username")
 version = config.get("General", "version")
 starting_balance = int(config.get("General", "starting_balance"))
 max_bet = int(config.get(config_header, "bet_limit"))
-payout_table = {
-    0 : 45000,
-    1 : 4000,
-    2 : 600,
-    3 : 55,
-    4 : 25,
-    5 : 10,
-    6 : 5,
-    7 : 2,
-    8 : 0,
-    9 : 0
-}
-game_type = 'High-hand Poker'
+game_type = 'Keno'
 
-def format_wager_reply(username, wager_amount, hand_string, board_string, hand_type, outcome,
-                       winnings, new_balance):
-    return reply_messages.POKER_SUCCESS_MSG.format(username,
-                                                   wager_amount,
-                                                   hand_string,
-                                                   board_string,
-                                                   hand_type,
-                                                   winnings,
-                                                   new_balance)
-
-def send_royal_message(comment_id):
-    reddit.redditor('eganwall').message('ROYAL FLUSH BABY', 'SOMEONE HIT A ROYAL! Look here : {}'.format(str(comment_id)))
-
-def deal_hand():
-    deck = deuces.Deck()
-    board = deck.draw(5)
-    hand = deck.draw(2)
-    print("Dealing hand: ")
-    for current_card in hand:
-        card.print_pretty_card(current_card)
-    print("Dealing board: ")
-    for current_card in board:
-        card.print_pretty_card(current_card)
-    return {'board' : board, 'hand' : hand}
+def format_wager_reply(username, wager_amount, num_catches, outcome,
+                       winnings, result_string, new_balance):
+    return reply_messages.KENO_REPLY_WRAPPER_TEMPLATE_MSG.format(username, wager_amount, result_string, outcome,
+                                                                 winnings, (winnings - wager_amount), new_balance)
 
 def parse_post_for_wager(post_body, player_balance):
     body_tokens = post_body.strip().split(' ')
@@ -65,42 +33,60 @@ def parse_post_for_wager(post_body, player_balance):
 
     return 0
 
-def play_poker(wager_amount, comment_id):
-    player_hand = deal_hand()
-    hand_score = evaluator.evaluate(cards=player_hand['hand'], board=player_hand['board'])
-    hand_class = evaluator.get_rank_class(hand_score)
-    hand_class_string = evaluator.class_to_string(hand_class)
-    print("Player hand class : [raw = {}] [string = {}]".format(hand_class, hand_class_string))
+def play_keno(wager_amount):
+    payout_table = {
+        0: 0,
+        1: 0,
+        2: 2,
+        3: 5,
+        4: 10,
+        5: 20,
+        6: 75,
+        7: 2000,
+        8: 25000
+    }
 
-    # if we don't have at least 2 pair, we lose
-    if(hand_class > 7):
-        outcome = SG_Repository.WagerOutcome.LOSE
-        winnings = wager_amount * payout_table[hand_class]
-    # if they hit a royal flush, pay out the special case big payday
-    elif (hand_score == 1):
+    number_range = range(1, 61) # list of numbers 1-60
+    # get player's picks
+    player_numbers = random.sample(number_range, 7)
+    # print("Player picks: " + str(player_numbers))
+
+    # get dealer's picks
+    dealer_numbers = random.sample(number_range, 15)
+    # print("Dealer picks: " + str(dealer_numbers))
+
+    result_string = """***Your numbers*** : {}\n\n***Dealer numbers*** : [""".format(str(player_numbers))
+
+    # get the number of catches
+    num_catches = 0
+    for number in dealer_numbers:
+        if number in player_numbers:
+            print("Catch! [{}]".format(number))
+            num_catches += 1
+            result_string += """***{}***, """.format(number)
+        else:
+            result_string += """{}, """.format(number)
+
+    # remove the trailing ', ' and add the end bracket and newlines
+    result_string = result_string[:-2] + "]\n\n"
+
+    print("Found {} catches\n".format(num_catches))
+    # print("Your payout is {} : 1".format(str(payout_table[num_catches])))
+
+    result_string += """Total catches : ***{}***\n\n""".format((num_catches))
+
+    winnings = wager_amount * payout_table[num_catches]
+    print("Total winnings : {}".format(str(winnings)))
+
+    if winnings > 0:
         outcome = SG_Repository.WagerOutcome.WIN
-        winnings = wager_amount * payout_table[0]
-        send_royal_message(comment_id)
     else:
-        outcome = SG_Repository.WagerOutcome.WIN
-        winnings = wager_amount * payout_table[hand_class]
+        outcome = SG_Repository.WagerOutcome.LOSE
 
-    # build the pretty-printed cards into a string for the dealer reply comment
-    full_hand_string = """"""
-    for current_card in player_hand['hand']:
-        full_hand_string += card.int_to_pretty_str(current_card) + """
+    wager_result = {'num_catches' : num_catches, 'outcome': outcome, 'winnings': winnings,
+                    'full_result_string' : result_string}
 
-"""
-    full_board_string = """"""
-    for current_card in player_hand['board']:
-        full_board_string += card.int_to_pretty_str(current_card) + """
-
-"""
-
-    wager_result = {'hand_type' : hand_class_string, 'full_hand_string' : full_hand_string, 'outcome' : outcome,
-                    'winnings' : winnings, 'full_board_string' : full_board_string}
-
-    print("Poker wager result:")
+    print("Keno wager result:")
     pprint.pprint(wager_result)
 
     return wager_result
@@ -127,19 +113,15 @@ error_messages = SG_Messages.ErrorMessages
 reply_messages = SG_Messages.ReplyMessages
 constants = SG_Messages.MiscConstants
 
-# initialize the classes we need to run the poker game
-card = deuces.Card()
-evaluator = deuces.Evaluator()
-
 # set our subreddit so that we can do mod stuff like edit flairs
 subreddit = reddit.subreddit('solutiongambling')
 
 def bot_loop():
-    # get the Submission object for our poker thread
-    submission = reddit.submission(id='6lrf53')
+    # get the Submission object for our keno thread
+    submission = reddit.submission(id='6mk17b')
 
     submission.comment_sort = 'new'
-    # submission.comments.replace_more(limit=0)
+    submission.comments.replace_more(limit=0)
     for comment in list(submission.comments):
         # if we haven't processed this comment yet, make a new record for it and
         # process it
@@ -170,7 +152,7 @@ def bot_loop():
 
             if wager_amount <= 0:
                 print("Wager amount not valid")
-                comment.reply(error_messages.POKER_ERROR_MSG)
+                comment.reply(error_messages.KENO_ERROR_MSG)
                 continue
 
             if wager_amount > player['balance']:
@@ -183,19 +165,17 @@ def bot_loop():
                 comment.reply(error_messages.OVER_MAX_BET_ERROR_MSG.format(max_bet))
                 continue
 
-            wager_result = play_poker(wager_amount, comment.id)
+            wager_result = play_keno(wager_amount)
             new_player_balance = player['balance'] - wager_amount + wager_result['winnings']
 
             sg_repo.INSERT_WAGER(player['username'], wager_result['outcome'],
                                  wager_amount, wager_result['winnings'], new_player_balance, game_type)
             SG_Utils.update_player_after_wager(player['username'], new_player_balance, player['flair_css_class'])
 
-            reply = format_wager_reply(player['username'], wager_amount, wager_result['full_hand_string'],
-                                       wager_result['full_board_string'],
-                                       wager_result['hand_type'], wager_result['outcome'], wager_result['winnings'],
-                                       new_player_balance)
+            reply = format_wager_reply(player['username'], wager_amount, wager_result['num_catches'], wager_result['outcome'],
+                                       wager_result['winnings'], wager_result['full_result_string'], new_player_balance)
 
-            # print("Reply formatted:\n{}".format(reply))
+            print("Reply formatted:\n{}".format(reply))
             comment.reply(reply)
         else:
             break
@@ -205,3 +185,8 @@ while True:
 
     print("---------------------- Processing finished - sleeping for 10 seconds...")
     time.sleep(10)
+
+# players = sg_repo.GET_ALL_PLAYERS()
+# for player in players:
+#     pprint.pprint(player)
+#     sg_repo.DELETE_PLAYER_BY_USERNAME(player['username'])

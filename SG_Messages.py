@@ -21,6 +21,17 @@ Thanks, and good luck!
 
 ^^If ^^you ^^have ^^any ^^issues, ^^please ^^PM ^^/u/eganwall ^^or ^^post ^^on ^^this ^^sub!*"""
 
+    KENO_ERROR_MSG = """Hello! Please place your wager in the form of a 
+top-level comment:
+
+`wager {NUMBER}`
+
+where 0 < {NUMBER} <= your balance.
+
+Thanks, and good luck!
+
+^^If ^^you ^^have ^^any ^^issues, ^^please ^^PM ^^/u/eganwall ^^or ^^post ^^on ^^this ^^sub!*"""
+
     ROULETTE_WAGER_FORMAT_ERROR_MSG = """Wager could not be made: [*{}*] Reason: __invalid format__.
 Please refer to the body of the OP for more info."""
 
@@ -274,6 +285,26 @@ Dealer's card:
 
 It looks like you've lost all of your points! Don't worry - we've added some more to 
 your balance. Get back out there and have fun!"""
+
+    KENO_REPLY_WRAPPER_TEMPLATE_MSG = """/u/{},
+
+Thank you for your wager of {:,}! Here are your keno results:
+
+&nbsp;
+
+{}
+
+Your outcome is : **{}**
+
+&nbsp;
+
+Your __winnings__ are __{:,}__
+
+Your __profit__ is __{:,}__
+
+Your __new balance__ is ***{:,}***
+
+Thanks for playing, and good luck!"""
 
 class MiscMessages:
     SUBSCRIBER_ANNOUNCEMENT_MSG_TEMPLATE = """Hello, /u/{}!
