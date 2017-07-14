@@ -4,6 +4,21 @@ import SG_Repository
 import SG_Messages
 import time
 
+flair_table = {
+    0 : ('', 'zero'),
+    1 : ('Novice', 'one'),
+    2 : ('Social Gambler', 'two'),
+    3 : ('Weekend Warrior', 'three'),
+    4 : ('Addict', 'four'),
+    5 : ('Grinder', 'five'),
+    6 : ('Advantage Player', 'six'),
+    7 : ('Professional' , 'seven'),
+    8 : ('Shark', 'eight'),
+    9 : ('High Roller', 'nine'),
+    10 : ('Whale', 'ten'),
+    11 : ('Wizard of Odds', 'eleven'),
+}
+
 config = ConfigParser.ConfigParser()
 config.read("settings.config")
 
@@ -47,7 +62,11 @@ while True:
 
     player_tokens = list()
     for player in players:
-        player_tokens.append(player['username'])
+        flair = flair_table[player['flair_level']]
+        if player['flair_level'] > 0:
+            player_tokens.append(player['username'] + " : [{}](#{})".format(flair[0], flair[1]))
+        else:
+            player_tokens.append(player['username'])
         player_tokens.append(player['balance'])
 
     player_leaderboard_message = player_leaderboard_message.format(*player_tokens)

@@ -2,6 +2,7 @@ import ConfigParser
 import praw
 import SG_Repository
 import SG_Messages
+import pprint
 
 config = ConfigParser.ConfigParser()
 config.read("settings.config")
@@ -33,38 +34,35 @@ sg_repo = SG_Repository.Repository()
 message_template = SG_Messages.MiscMessages.SUBSCRIBER_ANNOUNCEMENT_MSG_TEMPLATE
 
 # here's the subject and body of the message we want to send to the subs
-message_subject = "Updates: Small Flair Changes and New High-Stakes Game!"
-message_body = """Today I finished a couple of smaller things I had in the works: flair 
-titles and a new, all-or-nothing game!
+message_subject = "Updates: New All-in game, replacing coin toss"
+message_body = """Earlier today I was looking at the state of some of the games, and realized that 
+I needed to change at least a couple things. One of the problems, I think, is that we need more high-limit 
+games. However, the all-or-nothing coin flip was obviously not an attractive option for someone with a 
+bankroll of several million (or several hundred million). 
 
-&nbsp;
+Because of this, I've done away with the coin flip and replaced it with something that's still
+risky, but less so - and with a potentially much higher payout. Instead of a coin flip, a die will 
+be rolled. You'll still have to risk your whole balance, but it pays out a bit differently. If the 
+result is 1 or 2, you will lose your wager. However, a die roll of 3 pays out 2 to 1, with the payouts
+increasing until a roll of 6 (paying out 5 to 1!). 
 
-If you go to the flair shop, you'll notice that each level/color of flair now has a title.
-I added this because I was looking at the sub on my mobile Reddit app, and noticed that 
-since CSS doesn't show up, nobody could see the flair colors! The titles add a little bit more
-flavor, as well as allowing mobile users to see their flairs (and the flairs of others).
+The idea here is that taking a well-placed shot at this 
+game (and getting a bit lucky) could cause your balance to skyrocket, and might let you afford a 
+new flair or two :)
 
-&nbsp;
-
-I also noticed that there have been plenty of big hands that have been hit in poker, resulting 
-in some pretty high balances. This is neat, but having a maximum of 50K per poker hand kind of 
-makes it feel insignificant. For a little bit of added flavor, I've implemented a simple coin flip 
-game. What makes it high-stakes, however, is that if you place a wager, it's for your entire bankroll!
-
-I know this may not be appealing to some of you more risk-averse players with big stacks, and that's
-OK - I figured I would get some feedback on this, while also planning to implement some other 
-high-stakes alternatives; for instance, possibly high-limit roulette where you can choose between a small
-bet of 1 million, and a large bet of 10 million. I'm going to be fiddling around with some design issues
-around high stakes games, so stay tuned for more in the future!
-
-&nbsp;
-
-Coming up soon: gifting and more games!"""
+Give it a try, and stay tuned for more updates after the weekend!"""
 
 # get all of our players
 all_players = sg_repo.GET_ALL_PLAYERS()
 
+not_received = []
+
 for player in all_players:
-    message = message_template.format(player['username'], message_body)
-    reddit.redditor(player['username']).message(message_subject, message, from_subreddit='/r/SolutionGambling')
-    print("Message sent to /u/{}".format(player['username']))
+    # if player['username'] not in not_received:
+    #     continue
+    try:
+        message = message_template.format(player['username'], message_body)
+        reddit.redditor(player['username']).message(message_subject, message, from_subreddit='/r/SolutionGambling')
+        print("Message sent to /u/{}".format(player['username']))
+    except Exception as e:
+        print("Exception {}".format(e))

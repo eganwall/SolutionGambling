@@ -7,12 +7,16 @@ import ConfigParser
 flair_table = {
     1 : {'cost' : 50000, 'css_class' : 'lvl1'},
     2 : {'cost' : 500000, 'css_class' : 'lvl2'},
-    3 : {'cost' : 2000000, 'css_class' : 'lvl3'},
-    4 : {'cost' : 10000000, 'css_class' : 'lvl4'},
-    5 : {'cost' : 100000000, 'css_class' : 'lvl5'},
-    6 : {'cost' : 1000000000, 'css_class' : 'lvl6'},
-    7 : {'cost' : 10000000000, 'css_class' : 'lvl7'},
-    8 : {'cost' : 0, 'css_class' : ''}
+    3 : {'cost' : 1000000, 'css_class' : 'lvl3'},
+    4 : {'cost' : 2000000, 'css_class' : 'lvl4'},
+    5 : {'cost' : 10000000, 'css_class' : 'lvl5'},
+    6 : {'cost' : 50000000, 'css_class' : 'lvl6'},
+    7 : {'cost' : 100000000, 'css_class' : 'lvl7'},
+    8 : {'cost' : 500000000, 'css_class' : 'lvl8'},
+    9 : {'cost' : 1000000000, 'css_class' : 'lvl9'},
+    10 : {'cost' : 5000000000, 'css_class' : 'lvl10'},
+    11 : {'cost' : 10000000000, 'css_class' : 'lvl11'},
+    12 : {'cost' : 0, 'css_class' : ''}
 }
 
 config = ConfigParser.ConfigParser()
@@ -103,7 +107,7 @@ while True:
 
                 target_flair = flair_table[target_flair_level]
 
-                if target_flair_level > 7:
+                if target_flair_level == len(flair_table):
                     print("Player already at highest level")
                     reply = error_messages.FLAIR_SHOP_ALREADY_MAX_LEVEL.format(player['username'])
                 elif player['balance'] < target_flair['cost']:

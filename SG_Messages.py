@@ -62,7 +62,7 @@ Your current balance is {:,}, which is insufficient for this purchase. Please tr
 
 It appears you are already at the highest flair level! Congratulations!"""
 
-    COIN_FLIP_NO_BALANCE_ERROR_MSG = """/u/{},
+    AON_DICE_ROLL_NO_BALANCE_ERROR_MSG = """/u/{},
 
 It appears that you have no points with which to wager! Please message the moderators
 and they will deposit the starting amount into your bankroll so you can get back on 
@@ -70,7 +70,7 @@ your feet.
 
 Thanks, and good luck!"""
 
-    COIN_FLIP_ERROR_MSG = """/u/{},
+    AON_DICE_ROLL_ERROR_MSG = """/u/{},
 
 Please place your bet by posting a comment like this: 
 
@@ -235,17 +235,17 @@ Your new balance is __{:,}__.
 
 Enjoy!"""
 
-    COIN_FLIP_WIN_MSG = """/u/{},
+    AON_DICE_ROLL_WIN_MSG = """/u/{},
 
-You've risked your whole balance ({:,}) on this coin flip, and the result is...
+You've risked your whole balance ({:,}) on this die roll, and the result is...
 
 #__{}__!
 
 Congratulations! Your new balance is {:,}. Good luck!"""
 
-    COIN_FLIP_LOSE_MSG = """/u/{},
+    AON_DICE_ROLL_LOSE_MSG = """/u/{},
 
-You've risked your whole balance ({:,}) on this coin flip, and the result is...
+You've risked your whole balance ({:,}) on this die roll, and the result is...
 
 #__{}__!
 
